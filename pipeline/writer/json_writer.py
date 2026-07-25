@@ -1,12 +1,10 @@
-# pipeline/writer/raw_game_json_writer.py
+# pipeline/writer/json_writer.py
 
 import json
 from pathlib import Path
 
-def write_raw_game_json(data, game_id):
-    output_path = Path(
-        f"data/raw_game_json/{game_id}.json"
-    )
+def write_json(data, subdir: str, key: str):
+    output_path = Path(f"data/{subdir}/{key}.json")
 
     output_path.parent.mkdir(
         parents=True,
