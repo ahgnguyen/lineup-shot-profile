@@ -1,2 +1,11 @@
-# Raw NBA data
-data/raw_game_json/
+# Python virtual environment
+.venv/
+
+# Python build artifacts
+__pycache__/
+
+# Local environment/credentials
+.env
+
+# macOS Finder metadata
+.DS_Store

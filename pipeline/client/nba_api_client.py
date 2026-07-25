@@ -1,10 +1,6 @@
 # pipeline/client/nba_api_client.py
 
-from nba_api.stats.endpoints import (
-    shotchartdetail,
-    shotchartlineupdetail,
-    leaguedashlineups,
-)
+from nba_api.stats.endpoints import shotchartdetail
 
 class NbaApiClient:
 

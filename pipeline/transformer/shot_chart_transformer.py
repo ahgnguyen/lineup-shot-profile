@@ -1,14 +1,14 @@
 # pipeline/transformer/shot_chart_transformer.py
 
-def transform_player_shot_chart(shot_chart_detail, player_id) -> list[dict]:
-    result_set = None
-    for rs in shot_chart_detail["resultSets"]:
-        if rs["name"] == "Shot_Chart_Detail":
-            result_set = rs
-            break
+def _find_result_set(data, name):
+    for rs in data["resultSets"]:
+        if rs["name"] == name:
+            return rs
+    raise ValueError(f'No "{name}" resultSet in response')
 
-    if result_set is None:
-        raise ValueError('No "Shot_Chart_Detail" resultSet in shot chart response')
+
+def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]:
+    result_set = _find_result_set(shot_chart_detail, "Shot_Chart_Detail")
 
     headers = result_set["headers"]
     x_idx = headers.index("LOC_X")
@@ -24,3 +24,23 @@ def transform_player_shot_chart(shot_chart_detail, player_id) -> list[dict]:
         }
         for row in result_set["rowSet"]
     ]
+
+def transform_to_player_team(shot_chart_detail) -> dict:
+    result_set = _find_result_set(shot_chart_detail, "Shot_Chart_Detail")
+
+    headers = result_set["headers"]
+    player_name_idx = headers.index("PLAYER_NAME")
+    team_id_idx = headers.index("TEAM_ID")
+    team_name_idx = headers.index("TEAM_NAME")
+    game_date_idx = headers.index("GAME_DATE")
+
+    rows = result_set["rowSet"]
+    if not rows:
+        raise ValueError("No shots to determine player/team info from")
+
+    latest_row = max(rows, key=lambda row: row[game_date_idx])
+    return {
+        "player_name": latest_row[player_name_idx],
+        "team_id": latest_row[team_id_idx],
+        "team_name": latest_row[team_name_idx],
+    }
