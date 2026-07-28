@@ -21,11 +21,11 @@ nba_client = NbaApiClient()
 conn = get_connection()
 
 for player_id in PLAYER_IDS:
-    shot_chart_detail = nba_client.get_player_shot_chart_detail(player_id, SEASON)
+    shot_chart_detail = nba_client.get_player_shot_chart_detail(player_id, 0, SEASON)
 
     team_info = transform_to_player_team(shot_chart_detail)
     team_abbreviation = static_teams.find_team_name_by_id(team_info["team_id"])["abbreviation"]
-    shot_history = transform_to_player_shot_history(shot_chart_detail, player_id)
+    shot_history = transform_to_player_shot_history(shot_chart_detail, player_id, team_info["team_id"])
 
     upsert_team(conn, team_info["team_id"], team_info["team_name"], team_abbreviation)
     upsert_player(conn, player_id, team_info["player_name"], team_info["team_id"])

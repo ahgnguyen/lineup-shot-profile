@@ -22,12 +22,17 @@ def replace_player_shot_history(conn, player_id, shots):
         cur.execute(queries.DELETE_PLAYER_SHOT_HISTORY, (player_id,))
         cur.executemany(
             queries.INSERT_PLAYER_SHOT_HISTORY,
-            [(s["player_id"], s["loc_x"], s["loc_y"], s["made"], s["shot_value"]) for s in shots],
+            [(s["player_id"], s["team_id"], s["loc_x"], s["loc_y"], s["made"], s["shot_value"]) for s in shots],
         )
 
 def get_player_own_fga(conn, player_id):
     with conn.cursor() as cur:
         cur.execute(queries.SELECT_PLAYER_OWN_FGA, (player_id,))
+        return cur.fetchone()[0]
+
+def get_player_own_fga_for_team(conn, player_id, team_id):
+    with conn.cursor() as cur:
+        cur.execute(queries.SELECT_PLAYER_OWN_FGA_FOR_TEAM, (player_id, team_id))
         return cur.fetchone()[0]
 
 def upsert_player_fga_share(conn, player_id, fga_share):

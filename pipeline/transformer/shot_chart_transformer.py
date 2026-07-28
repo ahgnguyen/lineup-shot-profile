@@ -2,7 +2,7 @@
 
 from pipeline.transformer.result_sets import find_result_set
 
-def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]:
+def transform_to_player_shot_history(shot_chart_detail, player_id, team_id) -> list[dict]:
     result_set = find_result_set(shot_chart_detail, "Shot_Chart_Detail")
 
     headers = result_set["headers"]
@@ -14,6 +14,7 @@ def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]
     return [
         {
             "player_id": player_id,
+            "team_id": team_id,
             "loc_x": row[x_idx],
             "loc_y": row[y_idx],
             "made": bool(row[made_idx]),

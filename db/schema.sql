@@ -15,6 +15,7 @@ CREATE TABLE players (
 CREATE TABLE player_shot_history (
     id SERIAL PRIMARY KEY,
     player_id INTEGER NOT NULL REFERENCES players(id),
+    team_id INTEGER NOT NULL REFERENCES teams(id),
     loc_x INTEGER NOT NULL,
     loc_y INTEGER NOT NULL,
     made BOOLEAN NOT NULL,
