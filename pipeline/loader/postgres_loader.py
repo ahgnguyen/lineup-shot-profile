@@ -22,7 +22,7 @@ def replace_player_shot_history(conn, player_id, shots):
         cur.execute(queries.DELETE_PLAYER_SHOT_HISTORY, (player_id,))
         cur.executemany(
             queries.INSERT_PLAYER_SHOT_HISTORY,
-            [(s["player_id"], s["loc_x"], s["loc_y"], s["made"]) for s in shots],
+            [(s["player_id"], s["loc_x"], s["loc_y"], s["made"], s["shot_value"]) for s in shots],
         )
 
 def get_player_own_fga(conn, player_id):

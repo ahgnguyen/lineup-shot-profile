@@ -11,3 +11,15 @@ export const SELECT_PLAYER = `
   FROM players
   WHERE id = $1
 `;
+
+export const SELECT_PLAYERS_SHOTS = `
+  SELECT player_id, loc_x, loc_y, made, shot_value
+  FROM player_shot_history
+  WHERE player_id = ANY($1)
+`;
+
+export const SELECT_PLAYERS_FGA_SHARES = `
+  SELECT player_id, fga_share
+  FROM player_fga_shares
+  WHERE player_id = ANY($1)
+`;

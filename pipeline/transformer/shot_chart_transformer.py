@@ -9,6 +9,7 @@ def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]
     x_idx = headers.index("LOC_X")
     y_idx = headers.index("LOC_Y")
     made_idx = headers.index("SHOT_MADE_FLAG")
+    shot_type_idx = headers.index("SHOT_TYPE")
 
     return [
         {
@@ -16,6 +17,7 @@ def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]
             "loc_x": row[x_idx],
             "loc_y": row[y_idx],
             "made": bool(row[made_idx]),
+            "shot_value": 3 if row[shot_type_idx] == "3PT Field Goal" else 2,
         }
         for row in result_set["rowSet"]
     ]

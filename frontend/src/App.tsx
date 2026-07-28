@@ -1,26 +1,24 @@
 import { useEffect, useState } from 'react'
-import { getPlayer, getPlayerShots, type Player, type Shot } from './api/players'
-import { CourtHexbinChart } from './components/CourtHexbinChart'
+import { getComposite, type CompositeCell } from './api/composite'
+import { CompositeHexbinChart } from './components/CompositeHexbinChart'
 
-const PLAYER_ID = 1629008
+const LINEUP_PLAYER_IDS = [1642856, 1629611, 1629008, 1641730, 1629651]
 
 function App() {
-  const [player, setPlayer] = useState<Player | null>(null)
-  const [shots, setShots] = useState<Shot[] | null>(null)
+  const [composite, setComposite] = useState<CompositeCell[] | null>(null)
 
   useEffect(() => {
-    getPlayer(PLAYER_ID).then(setPlayer)
-    getPlayerShots(PLAYER_ID).then(setShots)
+    getComposite(LINEUP_PLAYER_IDS).then(setComposite)
   }, [])
 
-  if (!player || !shots) {
+  if (!composite) {
     return <div>Loading...</div>
   }
 
   return (
     <div>
-      <h1>{player.name} — {shots.length} shots</h1>
-      <CourtHexbinChart shots={shots} />
+      <h2>Predicted composite ({LINEUP_PLAYER_IDS.length} players)</h2>
+      <CompositeHexbinChart cells={composite} />
     </div>
   )
 }

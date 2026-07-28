@@ -15,7 +15,8 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, team_id = EXCLUDED.team_id
 DELETE_PLAYER_SHOT_HISTORY = "DELETE FROM player_shot_history WHERE player_id = %s"
 
 INSERT_PLAYER_SHOT_HISTORY = """
-INSERT INTO player_shot_history (player_id, loc_x, loc_y, made) VALUES (%s, %s, %s, %s)
+INSERT INTO player_shot_history (player_id, loc_x, loc_y, made, shot_value)
+VALUES (%s, %s, %s, %s, %s)
 """
 
 SELECT_PLAYER_OWN_FGA = "SELECT COUNT(*) FROM player_shot_history WHERE player_id = %s"
