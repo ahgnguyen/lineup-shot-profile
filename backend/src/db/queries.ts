@@ -23,3 +23,25 @@ export const SELECT_PLAYERS_FGA_SHARES = `
   FROM player_fga_shares
   WHERE player_id = ANY($1)
 `;
+
+export const SELECT_TEAMS = `
+  SELECT id, name, abbreviation
+  FROM teams
+  ORDER BY name
+`;
+
+export const SELECT_TEAM_PLAYERS = `
+  SELECT id, name
+  FROM players
+  WHERE team_id = $1
+  ORDER BY name
+`;
+
+export const SEARCH_PLAYERS = `
+  SELECT p.id, p.name, t.abbreviation AS team_abbreviation
+  FROM players p
+  JOIN teams t ON t.id = p.team_id
+  WHERE p.name ILIKE '%' || $1 || '%'
+  ORDER BY p.name
+  LIMIT 25
+`;

@@ -22,3 +22,14 @@ export async function getPlayer(playerId: number): Promise<Player> {
   const response = await fetch(`${API_BASE_URL}/players/${playerId}`);
   return response.json();
 }
+
+export interface PlayerSearchResult {
+  id: number;
+  name: string;
+  team_abbreviation: string;
+}
+
+export async function searchPlayers(query: string): Promise<PlayerSearchResult[]> {
+  const response = await fetch(`${API_BASE_URL}/players?q=${encodeURIComponent(query)}`);
+  return response.json();
+}

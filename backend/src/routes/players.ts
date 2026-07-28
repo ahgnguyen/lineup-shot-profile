@@ -2,9 +2,19 @@
 
 import { Router } from "express";
 import { pool } from "../db/pool";
-import { SELECT_PLAYER_SHOTS, SELECT_PLAYER } from "../db/queries";
+import { SELECT_PLAYER_SHOTS, SELECT_PLAYER, SEARCH_PLAYERS } from "../db/queries";
 
 const router = Router();
+
+router.get("/", async (req, res) => {
+  const query = ((req.query.q as string) ?? "").trim();
+  if (!query) {
+    res.json([]);
+    return;
+  }
+  const result = await pool.query(SEARCH_PLAYERS, [query]);
+  res.json(result.rows);
+});
 
 router.get("/:id", async (req, res) => {
   const playerId = Number(req.params.id);

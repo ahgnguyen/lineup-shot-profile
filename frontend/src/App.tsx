@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react'
 import { getComposite, type CompositeCell } from './api/composite'
 import { CompositeHexbinChart } from './components/CompositeHexbinChart'
-
-const LINEUP_PLAYER_IDS = [1642856, 1629611, 1629008, 1641730, 1629651]
+import { EMPTY_LINEUP, LineupSelector, type LineupSlots } from './components/LineupSelector'
 
 function App() {
+  const [slots, setSlots] = useState<LineupSlots>(EMPTY_LINEUP)
   const [composite, setComposite] = useState<CompositeCell[] | null>(null)
 
-  useEffect(() => {
-    getComposite(LINEUP_PLAYER_IDS).then(setComposite)
-  }, [])
+  const filledPlayerIds = slots.filter((slot) => slot !== null).map((slot) => slot.id)
+  const isLineupComplete = filledPlayerIds.length === 5
 
-  if (!composite) {
-    return <div>Loading...</div>
-  }
+  useEffect(() => {
+    if (!isLineupComplete) {
+      setComposite(null)
+      return
+    }
+    getComposite(filledPlayerIds).then(setComposite)
+  }, [isLineupComplete, filledPlayerIds.join(',')])
 
   return (
     <div>
-      <h2>Predicted composite ({LINEUP_PLAYER_IDS.length} players)</h2>
-      <CompositeHexbinChart cells={composite} />
+      <h2>Lineup Shot Profile</h2>
+      <LineupSelector slots={slots} onSlotsChange={setSlots} />
+
+      {isLineupComplete && !composite && <div>Loading...</div>}
+      {composite && <CompositeHexbinChart cells={composite} />}
     </div>
   )
 }
