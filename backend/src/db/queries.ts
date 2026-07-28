@@ -5,3 +5,9 @@ export const SELECT_PLAYER_SHOTS = `
   FROM player_shot_history
   WHERE player_id = $1
 `;
+
+export const SELECT_PLAYER = `
+  SELECT id, name
+  FROM players
+  WHERE id = $1
+`;
