@@ -17,3 +17,11 @@ DELETE_PLAYER_SHOT_HISTORY = "DELETE FROM player_shot_history WHERE player_id = 
 INSERT_PLAYER_SHOT_HISTORY = """
 INSERT INTO player_shot_history (player_id, loc_x, loc_y, made) VALUES (%s, %s, %s, %s)
 """
+
+SELECT_PLAYER_OWN_FGA = "SELECT COUNT(*) FROM player_shot_history WHERE player_id = %s"
+
+UPSERT_PLAYER_FGA_SHARE = """
+INSERT INTO player_fga_shares (player_id, fga_share)
+VALUES (%s, %s)
+ON CONFLICT (player_id) DO UPDATE SET fga_share = EXCLUDED.fga_share
+"""

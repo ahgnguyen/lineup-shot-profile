@@ -1,14 +1,9 @@
 # pipeline/transformer/shot_chart_transformer.py
 
-def _find_result_set(data, name):
-    for rs in data["resultSets"]:
-        if rs["name"] == name:
-            return rs
-    raise ValueError(f'No "{name}" resultSet in response')
-
+from pipeline.transformer.result_sets import find_result_set
 
 def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]:
-    result_set = _find_result_set(shot_chart_detail, "Shot_Chart_Detail")
+    result_set = find_result_set(shot_chart_detail, "Shot_Chart_Detail")
 
     headers = result_set["headers"]
     x_idx = headers.index("LOC_X")
@@ -26,7 +21,7 @@ def transform_to_player_shot_history(shot_chart_detail, player_id) -> list[dict]
     ]
 
 def transform_to_player_team(shot_chart_detail) -> dict:
-    result_set = _find_result_set(shot_chart_detail, "Shot_Chart_Detail")
+    result_set = find_result_set(shot_chart_detail, "Shot_Chart_Detail")
 
     headers = result_set["headers"]
     player_name_idx = headers.index("PLAYER_NAME")
