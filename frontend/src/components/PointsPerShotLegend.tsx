@@ -1,11 +1,6 @@
 // frontend/src/components/PointsPerShotLegend.tsx
 
-import {
-  MIN_POINTS_PER_SHOT,
-  MAX_POINTS_PER_SHOT,
-  NEUTRAL_POINTS_PER_SHOT,
-  pointsPerShotColor,
-} from '../pointsPerShotColor'
+import { MIN_POINTS_PER_SHOT, MAX_POINTS_PER_SHOT, NEUTRAL_POINTS_PER_SHOT, pointsPerShotColor } from '../pointsPerShotColor'
 
 export function PointsPerShotLegend() {
   const gradient = `linear-gradient(to right, ${pointsPerShotColor(MIN_POINTS_PER_SHOT)}, ${pointsPerShotColor(NEUTRAL_POINTS_PER_SHOT)}, ${pointsPerShotColor(MAX_POINTS_PER_SHOT)})`

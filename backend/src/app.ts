@@ -5,6 +5,7 @@ import cors from "cors";
 import playersRouter from "./routes/players";
 import compositeRouter from "./routes/composite";
 import teamsRouter from "./routes/teams";
+import lineupsRouter from "./routes/lineups";
 
 export const app = express();
 
@@ -13,3 +14,4 @@ app.use(express.json());
 app.use("/players", playersRouter);
 app.use("/composite", compositeRouter);
 app.use("/teams", teamsRouter);
+app.use("/lineups", lineupsRouter);

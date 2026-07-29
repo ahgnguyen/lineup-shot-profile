@@ -26,6 +26,7 @@ export async function getPlayer(playerId: number): Promise<Player> {
 export interface PlayerSearchResult {
   id: number;
   name: string;
+  team_id: number;
   team_abbreviation: string;
 }
 

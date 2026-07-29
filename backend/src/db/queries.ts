@@ -38,10 +38,45 @@ export const SELECT_TEAM_PLAYERS = `
 `;
 
 export const SEARCH_PLAYERS = `
-  SELECT p.id, p.name, t.abbreviation AS team_abbreviation
+  SELECT p.id, p.name, p.team_id, t.abbreviation AS team_abbreviation
   FROM players p
   JOIN teams t ON t.id = p.team_id
   WHERE unaccent(p.name) ILIKE '%' || unaccent($1) || '%'
   ORDER BY p.name
   LIMIT 25
+`;
+
+export const SELECT_TEAM_LINEUPS = `
+  SELECT
+    l.id,
+    l.player_ids,
+    roster.player_names,
+    roster.player_team_ids,
+    roster.player_team_abbreviations,
+    l.total_minutes,
+    l.total_fga
+  FROM lineups l
+  CROSS JOIN LATERAL (
+    SELECT
+      array_agg(p.name ORDER BY ord) AS player_names,
+      array_agg(p.team_id ORDER BY ord) AS player_team_ids,
+      array_agg(t.abbreviation ORDER BY ord) AS player_team_abbreviations
+    FROM unnest(l.player_ids) WITH ORDINALITY AS u(player_id, ord)
+    JOIN players p ON p.id = u.player_id
+    JOIN teams t ON t.id = p.team_id
+  ) roster
+  WHERE l.team_id = $1
+  ORDER BY l.total_fga DESC
+`;
+
+export const SELECT_LINEUP = `
+  SELECT id, team_id, player_ids, total_minutes, total_fga
+  FROM lineups
+  WHERE id = $1
+`;
+
+export const SELECT_LINEUP_ACTUAL_SHOTS = `
+  SELECT loc_x, loc_y, made, shot_value
+  FROM lineup_actual_shots
+  WHERE lineup_id = $1
 `;

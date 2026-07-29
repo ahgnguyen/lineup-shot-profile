@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { getTeamPlayers, getTeams, type Team, type TeamPlayer } from "../api/teams";
 import { searchPlayers, type PlayerSearchResult } from "../api/players";
+import { getTeamLineups, type TeamLineup } from "../api/lineups";
 
 export interface LineupSlot {
   id: number;
   name: string;
+  teamId: number;
   teamAbbreviation: string;
 }
 
@@ -24,6 +26,7 @@ export function LineupSelector({ slots, onSlotsChange, weightsByPlayer }: Lineup
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [roster, setRoster] = useState<TeamPlayer[]>([]);
+  const [teamLineups, setTeamLineups] = useState<TeamLineup[]>([]);
   const [activeSlot, setActiveSlot] = useState<number | null>(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlayerSearchResult[]>([]);
@@ -35,9 +38,11 @@ export function LineupSelector({ slots, onSlotsChange, weightsByPlayer }: Lineup
   useEffect(() => {
     if (selectedTeamId === null) {
       setRoster([]);
+      setTeamLineups([]);
       return;
     }
     getTeamPlayers(selectedTeamId).then(setRoster);
+    getTeamLineups(selectedTeamId).then(setTeamLineups);
   }, [selectedTeamId]);
 
   useEffect(() => {
@@ -85,18 +90,35 @@ export function LineupSelector({ slots, onSlotsChange, weightsByPlayer }: Lineup
   }
 
   function handlePickFromRoster(player: TeamPlayer, team: Team) {
-    placePlayer({ id: player.id, name: player.name, teamAbbreviation: team.abbreviation });
+    placePlayer({ id: player.id, name: player.name, teamId: team.id, teamAbbreviation: team.abbreviation });
   }
 
   function handlePickFromSearch(result: PlayerSearchResult) {
-    placePlayer({ id: result.id, name: result.name, teamAbbreviation: result.team_abbreviation });
+    placePlayer({
+      id: result.id,
+      name: result.name,
+      teamId: result.team_id,
+      teamAbbreviation: result.team_abbreviation,
+    });
     setSearchQuery("");
+  }
+
+  function handlePickLineup(lineup: TeamLineup) {
+    const next: LineupSlots = lineup.playerIds.map((playerId, index) => ({
+      id: playerId,
+      name: lineup.playerNames[index],
+      teamId: lineup.playerTeamIds[index],
+      teamAbbreviation: lineup.playerTeamAbbreviations[index],
+    }));
+    onSlotsChange(next);
+    setActiveSlot(null);
   }
 
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) ?? null;
   const selectedPlayerIds = new Set(slots.filter((s): s is LineupSlot => s !== null).map((s) => s.id));
   const isSearching = searchQuery.trim().length > 0;
   const hasAnyPlayers = selectedPlayerIds.size > 0;
+  const qualifyingLineups = teamLineups.filter((l) => l.sufficientSample);
 
   return (
     <div className="lineup-selector">
@@ -184,6 +206,22 @@ export function LineupSelector({ slots, onSlotsChange, weightsByPlayer }: Lineup
                 ))}
               </ul>
             )}
+          </div>
+        )}
+
+        {!isSearching && selectedTeam && qualifyingLineups.length > 0 && (
+          <div className="real-lineups-section">
+            <div className="real-lineups-title">Real lineups (100+ FGA)</div>
+            <ul className="real-lineup-list">
+              {qualifyingLineups.map((lineup) => (
+                <li key={lineup.id}>
+                  <button onClick={() => handlePickLineup(lineup)}>
+                    <span className="real-lineup-players">{lineup.playerNames.join(" · ")}</span>
+                    <span className="real-lineup-meta">{lineup.totalFga} FGA</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

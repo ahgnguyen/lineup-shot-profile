@@ -60,3 +60,18 @@ export function computeComposite(players: PlayerShotData[]): CompositeResult {
 
   return { cells, weights };
 }
+
+export function computeActual(shots: ShotPoint[]): CompositeCell[] {
+  const bins = binShots(shots);
+  const totalShots = shots.length;
+
+  return bins.map((bin) => {
+    const pointsInBin = bin.reduce((sum, shot) => sum + shot.points, 0);
+    return {
+      x: bin.x,
+      y: bin.y,
+      frequency: bin.length / totalShots,
+      pointsPerShot: pointsInBin / bin.length,
+    };
+  });
+}
