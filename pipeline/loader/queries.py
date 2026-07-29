@@ -30,3 +30,20 @@ INSERT INTO player_fga_shares (player_id, fga_share)
 VALUES (%s, %s)
 ON CONFLICT (player_id) DO UPDATE SET fga_share = EXCLUDED.fga_share
 """
+
+UPSERT_LINEUP = """
+INSERT INTO lineups (id, team_id, player_ids, total_minutes, total_fga)
+VALUES (%s, %s, %s, %s, %s)
+ON CONFLICT (id) DO UPDATE SET
+    team_id = EXCLUDED.team_id,
+    player_ids = EXCLUDED.player_ids,
+    total_minutes = EXCLUDED.total_minutes,
+    total_fga = EXCLUDED.total_fga
+"""
+
+DELETE_LINEUP_ACTUAL_SHOTS = "DELETE FROM lineup_actual_shots WHERE lineup_id = %s"
+
+INSERT_LINEUP_ACTUAL_SHOTS = """
+INSERT INTO lineup_actual_shots (lineup_id, loc_x, loc_y, made, shot_value)
+VALUES (%s, %s, %s, %s, %s)
+"""

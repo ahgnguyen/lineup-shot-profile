@@ -5,6 +5,8 @@ from nba_api.stats.endpoints import (
     teamplayeronoffdetails,
     leaguedashplayerstats,
     playerprofilev2,
+    leaguedashlineups,
+    shotchartlineupdetail,
 )
 
 class NbaApiClient:
@@ -15,6 +17,23 @@ class NbaApiClient:
             team_id=team_id,
             season_nullable=season,
             context_measure_simple="FGA",
+        )
+        return response.get_dict()
+
+    def get_league_dash_lineups(self, team_id: str, season: str):
+        response = leaguedashlineups.LeagueDashLineups(
+            team_id_nullable=team_id,
+            season=season,
+            group_quantity=5,
+        )
+        return response.get_dict()
+
+    def get_shot_chart_lineup_detail(self, group_id: str, team_id: str, season: str):
+        response = shotchartlineupdetail.ShotChartLineupDetail(
+            group_id=group_id,
+            team_id_nullable=team_id,
+            season=season,
+            context_measure_detailed="FGA",
         )
         return response.get_dict()
 

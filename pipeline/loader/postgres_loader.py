@@ -38,3 +38,15 @@ def get_player_own_fga_for_team(conn, player_id, team_id):
 def upsert_player_fga_share(conn, player_id, fga_share):
     with conn.cursor() as cur:
         cur.execute(queries.UPSERT_PLAYER_FGA_SHARE, (player_id, fga_share))
+
+def upsert_lineup(conn, lineup_id, team_id, player_ids, total_minutes, total_fga):
+    with conn.cursor() as cur:
+        cur.execute(queries.UPSERT_LINEUP, (lineup_id, team_id, player_ids, total_minutes, total_fga))
+
+def replace_lineup_actual_shots(conn, lineup_id, shots):
+    with conn.cursor() as cur:
+        cur.execute(queries.DELETE_LINEUP_ACTUAL_SHOTS, (lineup_id,))
+        cur.executemany(
+            queries.INSERT_LINEUP_ACTUAL_SHOTS,
+            [(s["lineup_id"], s["loc_x"], s["loc_y"], s["made"], s["shot_value"]) for s in shots],
+        )
