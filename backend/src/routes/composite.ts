@@ -37,7 +37,18 @@ router.get("/", async (req, res) => {
     fgaShare: sharesByPlayer.get(playerId) ?? 0,
   }));
 
-  res.json(computeComposite(players));
+  const { cells, weights } = computeComposite(players);
+
+  const playerSummaries = playerIds.map((playerId) => ({
+    playerId,
+    shotCount: shotsByPlayer.get(playerId)?.length ?? 0,
+    fgaShare: sharesByPlayer.get(playerId) ?? 0,
+    weight: weights.get(playerId) ?? 0,
+  }));
+
+  const totalShots = playerSummaries.reduce((sum, p) => sum + p.shotCount, 0);
+
+  res.json({ cells, totalShots, players: playerSummaries });
 });
 
 export default router;

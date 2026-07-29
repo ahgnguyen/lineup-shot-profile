@@ -7,10 +7,14 @@
 // space defined in court.ts.
 
 const LINE_COLOR = '#9a9a9a'
+const COURT_SURFACE_COLOR = '#1e1e1e'
 
 export function CourtOutline() {
   return (
     <g fill="none" stroke={LINE_COLOR} strokeWidth={2}>
+      {/* Court surface */}
+      <rect x={0} y={0} width={500} height={470} fill={COURT_SURFACE_COLOR} stroke="none" />
+
       {/* Half-court boundary */}
       <rect x={0} y={0} width={500} height={470} />
 

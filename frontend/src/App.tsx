@@ -1,30 +1,50 @@
 import { useEffect, useState } from 'react'
-import { getComposite, type CompositeCell } from './api/composite'
+import { getComposite, type CompositeResponse } from './api/composite'
 import { CompositeHexbinChart } from './components/CompositeHexbinChart'
+import { PointsPerShotLegend } from './components/PointsPerShotLegend'
+import { FrequencyLegend } from './components/FrequencyLegend'
 import { EMPTY_LINEUP, LineupSelector, type LineupSlots } from './components/LineupSelector'
 
 function App() {
   const [slots, setSlots] = useState<LineupSlots>(EMPTY_LINEUP)
-  const [composite, setComposite] = useState<CompositeCell[] | null>(null)
+  const [composite, setComposite] = useState<CompositeResponse | null>(null)
 
   const filledPlayerIds = slots.filter((slot) => slot !== null).map((slot) => slot.id)
-  const isLineupComplete = filledPlayerIds.length === 5
+  const hasAnyPlayers = filledPlayerIds.length > 0
 
   useEffect(() => {
-    if (!isLineupComplete) {
+    if (!hasAnyPlayers) {
       setComposite(null)
       return
     }
     getComposite(filledPlayerIds).then(setComposite)
-  }, [isLineupComplete, filledPlayerIds.join(',')])
+  }, [hasAnyPlayers, filledPlayerIds.join(',')])
+
+  const weightsByPlayer = new Map(composite?.players.map((p) => [p.playerId, p.weight]) ?? [])
 
   return (
-    <div>
+    <div className="page">
       <h2>Lineup Shot Profile</h2>
-      <LineupSelector slots={slots} onSlotsChange={setSlots} />
+      <div className="app-layout">
+        <LineupSelector slots={slots} onSlotsChange={setSlots} weightsByPlayer={weightsByPlayer} />
 
-      {isLineupComplete && !composite && <div>Loading...</div>}
-      {composite && <CompositeHexbinChart cells={composite} />}
+        <div className="chart-area">
+          <CompositeHexbinChart cells={composite?.cells ?? []} />
+          <div className="legends-row">
+            <div className="legends-group">
+              <PointsPerShotLegend />
+              <FrequencyLegend />
+            </div>
+            {composite && (
+              <div className="sample-size-note">
+                Predicted from {composite.totalShots.toLocaleString()} shots across{' '}
+                {composite.players.length} player{composite.players.length === 1 ? '' : 's'}
+              </div>
+            )}
+          </div>
+          {hasAnyPlayers && !composite && <div>Loading...</div>}
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,7 @@
 -- db/schema.sql
 
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 CREATE TABLE teams (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,

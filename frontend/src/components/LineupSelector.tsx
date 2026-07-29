@@ -17,9 +17,10 @@ export const EMPTY_LINEUP: LineupSlots = [null, null, null, null, null];
 interface LineupSelectorProps {
   slots: LineupSlots;
   onSlotsChange: (slots: LineupSlots) => void;
+  weightsByPlayer?: Map<number, number>;
 }
 
-export function LineupSelector({ slots, onSlotsChange }: LineupSelectorProps) {
+export function LineupSelector({ slots, onSlotsChange, weightsByPlayer }: LineupSelectorProps) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [roster, setRoster] = useState<TeamPlayer[]>([]);
@@ -68,6 +69,11 @@ export function LineupSelector({ slots, onSlotsChange }: LineupSelectorProps) {
     setActiveSlot(index);
   }
 
+  function handleClearAll() {
+    onSlotsChange(EMPTY_LINEUP);
+    setActiveSlot(0);
+  }
+
   function placePlayer(player: LineupSlot) {
     const targetIndex = activeSlot ?? firstEmptySlot(slots);
     if (targetIndex === null) return;
@@ -90,29 +96,41 @@ export function LineupSelector({ slots, onSlotsChange }: LineupSelectorProps) {
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) ?? null;
   const selectedPlayerIds = new Set(slots.filter((s): s is LineupSlot => s !== null).map((s) => s.id));
   const isSearching = searchQuery.trim().length > 0;
+  const hasAnyPlayers = selectedPlayerIds.size > 0;
 
   return (
     <div className="lineup-selector">
-      <div className="lineup-slots">
-        {slots.map((slot, index) => (
-          <div
-            key={index}
-            className={`lineup-slot${slot ? " filled" : ""}${activeSlot === index ? " active" : ""}`}
-            onClick={() => handleSelectSlot(index)}
-          >
-            {slot ? (
-              <>
-                <span className="lineup-slot-name">{slot.name}</span>
-                <span className="lineup-slot-team">{slot.teamAbbreviation}</span>
-                <button className="lineup-slot-remove" onClick={(e) => handleRemoveSlot(index, e)}>
-                  ×
-                </button>
-              </>
-            ) : (
-              <span className="lineup-slot-placeholder">+ Add player</span>
-            )}
-          </div>
-        ))}
+      <div className="lineup-slots-row">
+        <div className="lineup-slots">
+          {slots.map((slot, index) => (
+            <div
+              key={index}
+              className={`lineup-slot${slot ? " filled" : ""}${activeSlot === index ? " active" : ""}`}
+              onClick={() => handleSelectSlot(index)}
+            >
+              {slot ? (
+                <>
+                  <span className="lineup-slot-name">{slot.name}</span>
+                  <span className="lineup-slot-team">
+                    {slot.teamAbbreviation}
+                    {weightsByPlayer?.has(slot.id) && (
+                      <> &middot; {(weightsByPlayer.get(slot.id)! * 100).toFixed(0)}%</>
+                    )}
+                  </span>
+                  <button className="lineup-slot-remove" onClick={(e) => handleRemoveSlot(index, e)}>
+                    ×
+                  </button>
+                </>
+              ) : (
+                <span className="lineup-slot-placeholder">+ Add player</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button className="lineup-clear-all" disabled={!hasAnyPlayers} onClick={handleClearAll}>
+          Clear all
+        </button>
       </div>
 
       <div className="lineup-picker">
@@ -138,18 +156,19 @@ export function LineupSelector({ slots, onSlotsChange }: LineupSelectorProps) {
             ))}
           </ul>
         ) : (
-          <>
-            <select
-              value={selectedTeamId ?? ""}
-              onChange={(e) => setSelectedTeamId(e.target.value ? Number(e.target.value) : null)}
-            >
-              <option value="">Select a team…</option>
+          <div className="picker-columns">
+            <ul className="team-list">
               {teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
+                <li key={team.id}>
+                  <button
+                    className={team.id === selectedTeamId ? "active" : ""}
+                    onClick={() => setSelectedTeamId(team.id)}
+                  >
+                    {team.name}
+                  </button>
+                </li>
               ))}
-            </select>
+            </ul>
 
             {selectedTeam && (
               <ul className="lineup-roster">
@@ -165,7 +184,7 @@ export function LineupSelector({ slots, onSlotsChange }: LineupSelectorProps) {
                 ))}
               </ul>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -41,7 +41,7 @@ export const SEARCH_PLAYERS = `
   SELECT p.id, p.name, t.abbreviation AS team_abbreviation
   FROM players p
   JOIN teams t ON t.id = p.team_id
-  WHERE p.name ILIKE '%' || $1 || '%'
+  WHERE unaccent(p.name) ILIKE '%' || unaccent($1) || '%'
   ORDER BY p.name
   LIMIT 25
 `;

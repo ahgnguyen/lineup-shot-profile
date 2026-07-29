@@ -1,29 +1,179 @@
 :root {
   color-scheme: dark;
+
+  /* Slate-tinted dark theme (not pure black/gray) - the court panel is the
+     one deliberate exception, kept neutral gray so it doesn't compete with
+     the sky-blue end of the points-per-shot color scale. */
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #e8e8e8;
+  --text-muted: #8b949e;
+  --accent: #4da3ff;
 }
 
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: #121212;
-  color: #e8e8e8;
+  background: var(--bg);
+  color: var(--text);
 }
 
 h2 {
-  color: #e8e8e8;
+  color: var(--text);
+}
+
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  grid-template-areas:
+    "slots slots"
+    "main sidebar";
+  column-gap: 32px;
+  row-gap: 24px;
+  align-items: start;
+}
+
+.court-chart-container {
+  position: relative;
+}
+
+.court-svg {
+  display: block;
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+}
+
+.hex-tooltip {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.sample-size-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.lineup-selector {
+  display: contents;
+}
+
+.chart-area {
+  grid-area: main;
+}
+
+.lineup-slots-row {
+  grid-area: slots;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .lineup-slots {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+}
+
+.lineup-clear-all {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.lineup-clear-all:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.legends-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.legends-group {
+  display: flex;
+  gap: 32px;
+}
+
+.pps-legend {
+  width: 200px;
+}
+
+.freq-legend-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.freq-legend-visual {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.freq-legend-svg {
+  display: block;
+}
+
+.freq-legend-hex {
+  fill: var(--text-muted);
+}
+
+.freq-legend-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pps-legend-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.pps-legend-bar {
+  height: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.pps-legend-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .lineup-slot {
   position: relative;
-  width: 140px;
+  width: 150px;
   height: 56px;
-  border: 2px solid #444;
+  border: 2px solid var(--border);
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -31,11 +181,11 @@ h2 {
   padding: 4px 8px;
   cursor: pointer;
   box-sizing: border-box;
-  background: #1c1c1c;
+  background: var(--surface);
 }
 
 .lineup-slot.active {
-  border-color: #4da3ff;
+  border-color: var(--accent);
 }
 
 .lineup-slot.filled {
@@ -43,19 +193,19 @@ h2 {
 }
 
 .lineup-slot-placeholder {
-  color: #888;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .lineup-slot-name {
   font-size: 13px;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--text);
 }
 
 .lineup-slot-team {
   font-size: 11px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .lineup-slot-remove {
@@ -67,47 +217,68 @@ h2 {
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
-  color: #999;
+  color: var(--text-muted);
 }
 
-.lineup-picker select,
+.lineup-picker {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .lineup-search {
   padding: 4px;
   margin-bottom: 8px;
-  background: #1c1c1c;
-  color: #e8e8e8;
-  border: 1px solid #555;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 4px;
-}
-
-.lineup-search {
   display: block;
-  width: 240px;
+  width: 100%;
+  box-sizing: border-box;
   font: inherit;
 }
 
 .lineup-roster-team {
-  color: #999;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
+.picker-columns {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.team-list,
 .lineup-roster {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 8px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-width: 600px;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+  flex: 1;
+  min-width: 0;
 }
 
+.team-list button,
 .lineup-roster button {
-  padding: 4px 10px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid #555;
-  background: #222;
-  color: #e8e8e8;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
+}
+
+.team-list button.active {
+  border-color: var(--accent);
 }
 
 .lineup-roster button:disabled {

@@ -15,7 +15,12 @@ export interface CompositeCell {
   pointsPerShot: number;
 }
 
-export function computeComposite(players: PlayerShotData[]): CompositeCell[] {
+export interface CompositeResult {
+  cells: CompositeCell[];
+  weights: Map<number, number>;
+}
+
+export function computeComposite(players: PlayerShotData[]): CompositeResult {
   const lineupTotalShare = players.reduce((sum, p) => sum + p.fgaShare, 0);
 
   const weights = new Map(
@@ -47,9 +52,11 @@ export function computeComposite(players: PlayerShotData[]): CompositeCell[] {
     }
   }
 
-  return Array.from(cellFrequency.entries()).map(([key, frequency]) => ({
+  const cells = Array.from(cellFrequency.entries()).map(([key, frequency]) => ({
     ...cellCenters.get(key)!,
     frequency,
     pointsPerShot: cellPointsPerShotSum.get(key)! / frequency,
   }));
+
+  return { cells, weights };
 }
