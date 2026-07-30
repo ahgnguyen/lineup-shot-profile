@@ -1,6 +1,6 @@
-.venv
+/.venv
+/requirements.txt
+/pipeline
+/scripts
+/db
 __pycache__
-requirements.txt
-pipeline
-scripts
-db
