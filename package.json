@@ -1,0 +1,9 @@
+{
+  "name": "lineup-shot-profile",
+  "private": true,
+  "description": "Root of an npm workspaces monorepo (backend, frontend). Declares no dependencies of its own - api/[...path].ts (the Vercel serverless entry point) resolves express/pg/d3-hexbin from backend's dependencies, hoisted here by npm workspaces. Not used to run anything directly.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

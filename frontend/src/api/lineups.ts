@@ -1,8 +1,7 @@
 // frontend/src/api/lineups.ts
 
 import type { CompositeCell } from './composite'
-
-const API_BASE_URL = "http://localhost:4000";
+import { apiGet } from './client'
 
 export interface TeamLineup {
   id: string;
@@ -20,12 +19,10 @@ export interface LineupActualResponse {
   totalShots: number;
 }
 
-export async function getTeamLineups(teamId: number): Promise<TeamLineup[]> {
-  const response = await fetch(`${API_BASE_URL}/teams/${teamId}/lineups`);
-  return response.json();
+export function getTeamLineups(teamId: number): Promise<TeamLineup[]> {
+  return apiGet<TeamLineup[]>(`/teams/${teamId}/lineups`);
 }
 
-export async function getLineupActual(lineupId: string): Promise<LineupActualResponse> {
-  const response = await fetch(`${API_BASE_URL}/lineups/${encodeURIComponent(lineupId)}/actual`);
-  return response.json();
+export function getLineupActual(lineupId: string): Promise<LineupActualResponse> {
+  return apiGet<LineupActualResponse>(`/lineups/${encodeURIComponent(lineupId)}/actual`);
 }

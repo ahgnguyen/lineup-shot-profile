@@ -1,6 +1,6 @@
 // frontend/src/api/composite.ts
 
-const API_BASE_URL = "http://localhost:4000";
+import { apiGet } from "./client";
 
 export interface CompositeCell {
   x: number;
@@ -22,7 +22,6 @@ export interface CompositeResponse {
   players: CompositePlayerSummary[];
 }
 
-export async function getComposite(playerIds: number[]): Promise<CompositeResponse> {
-  const response = await fetch(`${API_BASE_URL}/composite?playerIds=${playerIds.join(",")}`);
-  return response.json();
+export function getComposite(playerIds: number[]): Promise<CompositeResponse> {
+  return apiGet<CompositeResponse>(`/composite?playerIds=${playerIds.join(",")}`);
 }

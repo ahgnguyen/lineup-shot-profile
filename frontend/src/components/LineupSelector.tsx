@@ -149,6 +149,7 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   const { placePlayer, placeLineup, selectedPlayerIds } = controller;
 
   const [teams, setTeams] = useState<Team[]>([]);
+  const [teamsError, setTeamsError] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [roster, setRoster] = useState<TeamPlayer[]>([]);
   const [teamLineups, setTeamLineups] = useState<TeamLineup[]>([]);
@@ -156,7 +157,9 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   const [searchResults, setSearchResults] = useState<PlayerSearchResult[]>([]);
 
   useEffect(() => {
-    getTeams().then(setTeams);
+    getTeams()
+      .then(setTeams)
+      .catch(() => setTeamsError(true));
   }, []);
 
   useEffect(() => {
@@ -202,6 +205,9 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   return (
     <div className="lineup-picker">
       <div className="picker-browse">
+        {teamsError && (
+          <div className="fetch-error">Couldn't load teams. Check your connection and reload the page.</div>
+        )}
         <div className="team-logo-grid">
           {teams.map((team) => (
             <button

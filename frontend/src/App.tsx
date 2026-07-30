@@ -11,6 +11,7 @@ type Mode = 'predicted' | 'actual'
 function App() {
   const [slots, setSlots] = useState<LineupSlots>(EMPTY_LINEUP)
   const [composite, setComposite] = useState<CompositeResponse | null>(null)
+  const [compositeError, setCompositeError] = useState(false)
   const [mode, setMode] = useState<Mode>('predicted')
   const [matchedLineup, setMatchedLineup] = useState<TeamLineup | null>(null)
   const [actualData, setActualData] = useState<LineupActualResponse | null>(null)
@@ -22,9 +23,13 @@ function App() {
   useEffect(() => {
     if (!hasAnyPlayers) {
       setComposite(null)
+      setCompositeError(false)
       return
     }
-    getComposite(filledPlayerIds).then(setComposite)
+    setCompositeError(false)
+    getComposite(filledPlayerIds)
+      .then(setComposite)
+      .catch(() => setCompositeError(true))
   }, [hasAnyPlayers, filledPlayerIds.join(',')])
 
   useEffect(() => {
@@ -114,7 +119,10 @@ function App() {
               )}
             </div>
 
-            {hasAnyPlayers && !composite && <div>Loading...</div>}
+            {compositeError && (
+              <div className="fetch-error">Couldn't load this lineup's shot data. Try again in a moment.</div>
+            )}
+            {hasAnyPlayers && !composite && !compositeError && <div>Loading...</div>}
           </div>
 
           <LineupSlotsPanel slots={slots} controller={lineupController} weightsByPlayer={weightsByPlayer} />
