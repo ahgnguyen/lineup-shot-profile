@@ -1,4 +1,4 @@
-// api/[...path].ts
+// api/index.ts
 
 import { app } from "../backend/src/app";
 
