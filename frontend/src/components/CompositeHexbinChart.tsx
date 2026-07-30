@@ -1,6 +1,6 @@
 // frontend/src/components/CompositeHexbinChart.tsx
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { hexbin as d3Hexbin } from 'd3-hexbin'
 import type { CompositeCell } from '../api/composite'
 import { COURT_WIDTH, COURT_LENGTH, toSvgX, toSvgY } from '../court'
@@ -11,6 +11,8 @@ export const HEX_RADIUS = 20
 
 interface CompositeHexbinChartProps {
   cells: CompositeCell[]
+  children?: ReactNode
+  size?: { width: number; height: number } | null
 }
 
 interface HoverState {
@@ -19,14 +21,20 @@ interface HoverState {
   clientY: number
 }
 
-export function CompositeHexbinChart({ cells }: CompositeHexbinChartProps) {
+export function CompositeHexbinChart({ cells, children, size }: CompositeHexbinChartProps) {
   const hexbin = d3Hexbin().radius(HEX_RADIUS)
   const maxFrequency = Math.max(...cells.map((cell) => cell.frequency))
   const [hover, setHover] = useState<HoverState | null>(null)
 
   return (
-    <div className="court-chart-container">
-      <svg className="court-svg" viewBox={`0 0 ${COURT_WIDTH} ${COURT_LENGTH}`}>
+    <div className="court-chart-container" style={size ? { width: size.width, height: size.height } : undefined}>
+      {children && <div className="court-chart-overlay">{children}</div>}
+
+      <svg
+        className="court-svg"
+        viewBox={`0 0 ${COURT_WIDTH} ${COURT_LENGTH}`}
+        style={size ? { width: size.width, height: size.height, maxWidth: 'none' } : undefined}
+      >
         <CourtOutline />
 
         {cells.map((cell, i) => {

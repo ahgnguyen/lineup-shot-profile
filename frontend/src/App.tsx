@@ -1,12 +1,53 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getComposite, type CompositeResponse } from './api/composite'
 import { getTeamLineups, getLineupActual, type TeamLineup, type LineupActualResponse } from './api/lineups'
 import { CompositeHexbinChart } from './components/CompositeHexbinChart'
 import { PointsPerShotLegend } from './components/PointsPerShotLegend'
 import { FrequencyLegend } from './components/FrequencyLegend'
 import { EMPTY_LINEUP, LineupSlotsPanel, LineupPicker, useLineupController, type LineupSlots } from './components/LineupSelector'
+import { COURT_RATIO } from './court'
 
 type Mode = 'predicted' | 'actual'
+
+function useCourtSize(
+  chartAreaRef: React.RefObject<HTMLDivElement | null>,
+  legendsRef: React.RefObject<HTMLDivElement | null>,
+) {
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null)
+
+  useEffect(() => {
+    const chartArea = chartAreaRef.current
+    if (!chartArea) return
+
+    function measure() {
+      if (!chartArea || !window.matchMedia('(min-width: 641px)').matches) {
+        setSize(null)
+        return
+      }
+      const chartAreaRect = chartArea.getBoundingClientRect()
+      const legends = legendsRef.current
+      const legendsSpace = legends
+        ? legends.getBoundingClientRect().height + parseFloat(getComputedStyle(legends).marginTop || '0')
+        : 0
+      const availableWidth = chartAreaRect.width
+      const availableHeight = chartAreaRect.height - legendsSpace
+      if (availableWidth <= 0 || availableHeight <= 0) return
+      const fittedWidth = Math.min(availableWidth, availableHeight * COURT_RATIO)
+      setSize({ width: fittedWidth, height: fittedWidth / COURT_RATIO })
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(chartArea)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [chartAreaRef, legendsRef])
+
+  return size
+}
 
 function App() {
   const [slots, setSlots] = useState<LineupSlots>(EMPTY_LINEUP)
@@ -16,6 +57,10 @@ function App() {
   const [matchedLineup, setMatchedLineup] = useState<TeamLineup | null>(null)
   const [actualData, setActualData] = useState<LineupActualResponse | null>(null)
   const lineupController = useLineupController(slots, setSlots)
+  const chartAreaRef = useRef<HTMLDivElement>(null)
+  const legendsRef = useRef<HTMLDivElement>(null)
+  const courtSize = useCourtSize(chartAreaRef, legendsRef)
+  const [showActualReason, setShowActualReason] = useState(false)
 
   const filledPlayerIds = slots.filter((slot) => slot !== null).map((slot) => slot.id)
   const hasAnyPlayers = filledPlayerIds.length > 0
@@ -77,32 +122,43 @@ function App() {
   // Keep showing Predicted until Actual can be showed
   const displayCells = mode === 'actual' && actualData ? actualData.cells : composite?.cells ?? []
 
-  const modeNote = allSlotsFilled && matchedLineup === null
-    ? "This isn't a real lineup that has shared the floor together — only Predicted is available."
+  const actualDisabledReason = allSlotsFilled && matchedLineup === null
+    ? "This isn't a real lineup that has shared the floor together."
     : matchedLineup && !matchedLineup.sufficientSample
-      ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed) — not enough real data yet for Actual.`
-      : ''
+      ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed).`
+      : undefined
 
   return (
     <div className="page">
       <h2>Lineup Shot Profile</h2>
       <div className="app-layout">
         <div className="chart-row">
-          <div className="chart-area">
-            <div className="mode-toggle">
-              <button className={mode === 'predicted' ? 'active' : ''} onClick={() => setMode('predicted')}>
-                Predicted
-              </button>
-              <button className={mode === 'actual' ? 'active' : ''} disabled={!canShowActual} onClick={() => setMode('actual')}>
-                Actual
-              </button>
-            </div>
+          <div className="chart-area" ref={chartAreaRef}>
+            <CompositeHexbinChart cells={displayCells} size={courtSize}>
+              <div className="mode-toggle">
+                <button className={mode === 'predicted' ? 'active' : ''} onClick={() => setMode('predicted')}>
+                  Predicted
+                </button>
+                <span
+                  className="actual-tooltip-anchor"
+                  onMouseEnter={() => setShowActualReason(true)}
+                  onMouseLeave={() => setShowActualReason(false)}
+                >
+                  <button
+                    className={mode === 'actual' ? 'active' : ''}
+                    disabled={!canShowActual}
+                    onClick={() => setMode('actual')}
+                  >
+                    Actual
+                  </button>
+                  {showActualReason && actualDisabledReason && (
+                    <div className="actual-tooltip">{actualDisabledReason}</div>
+                  )}
+                </span>
+              </div>
+            </CompositeHexbinChart>
 
-            <div className="mode-note">{modeNote}</div>
-
-            <CompositeHexbinChart cells={displayCells} />
-
-            <div className="legends-row">
+            <div className="legends-row" ref={legendsRef}>
               <div className="legends-group">
                 <PointsPerShotLegend />
                 <FrequencyLegend />

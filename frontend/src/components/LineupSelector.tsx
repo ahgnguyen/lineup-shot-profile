@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getTeamPlayers, getTeams, type Team, type TeamPlayer } from "../api/teams";
-import { searchPlayers, type PlayerSearchResult } from "../api/players";
 import { getTeamLineups, type TeamLineup } from "../api/lineups";
 
 export interface LineupSlot {
@@ -100,7 +99,12 @@ export function LineupSlotsPanel({ slots, controller, weightsByPlayer }: LineupS
 
   return (
     <div className="lineup-slots-column">
-      <div className="lineup-slots-title">Lineup</div>
+      <div className="lineup-slots-header">
+        <div className="lineup-slots-title">Lineup</div>
+        <button className="lineup-clear-all" disabled={!hasAnyPlayers} onClick={handleClearAll}>
+          Clear all
+        </button>
+      </div>
 
       <div className="lineup-slots">
         {slots.map((slot, index) => {
@@ -133,10 +137,6 @@ export function LineupSlotsPanel({ slots, controller, weightsByPlayer }: LineupS
           );
         })}
       </div>
-
-      <button className="lineup-clear-all" disabled={!hasAnyPlayers} onClick={handleClearAll}>
-        Clear all
-      </button>
     </div>
   );
 }
@@ -153,8 +153,7 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [roster, setRoster] = useState<TeamPlayer[]>([]);
   const [teamLineups, setTeamLineups] = useState<TeamLineup[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<PlayerSearchResult[]>([]);
+  const [pickerTab, setPickerTab] = useState<"players" | "lineups">("players");
 
   useEffect(() => {
     getTeams()
@@ -172,35 +171,21 @@ export function LineupPicker({ controller }: LineupPickerProps) {
     getTeamLineups(selectedTeamId).then(setTeamLineups);
   }, [selectedTeamId]);
 
-  useEffect(() => {
-    const query = searchQuery.trim();
-    if (!query) {
-      setSearchResults([]);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      searchPlayers(query).then(setSearchResults);
-    }, 200);
-    return () => clearTimeout(timeout);
-  }, [searchQuery]);
-
   function handlePickFromRoster(player: TeamPlayer, team: Team) {
     placePlayer({ id: player.id, name: player.name, teamId: team.id, teamAbbreviation: team.abbreviation });
   }
 
-  function handlePickFromSearch(result: PlayerSearchResult) {
-    placePlayer({
-      id: result.id,
-      name: result.name,
-      teamId: result.team_id,
-      teamAbbreviation: result.team_abbreviation,
-    });
-    setSearchQuery("");
-  }
-
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) ?? null;
-  const isSearching = searchQuery.trim().length > 0;
   const qualifyingLineups = teamLineups.filter((l) => l.sufficientSample);
+
+  // The tab you're on carries over across teams (not reset to Players on
+  // every switch) - this only overrides that if the newly selected team
+  // makes the current tab invalid (no qualifying lineups to show).
+  useEffect(() => {
+    if (pickerTab === "lineups" && qualifyingLineups.length === 0) {
+      setPickerTab("players");
+    }
+  }, [pickerTab, qualifyingLineups.length]);
 
   return (
     <div className="lineup-picker">
@@ -223,60 +208,58 @@ export function LineupPicker({ controller }: LineupPickerProps) {
           ))}
         </div>
 
-        <input
-          type="text"
-          className="lineup-search"
-          placeholder="Search players by name…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-
-        {isSearching ? (
-          <ul className="lineup-roster">
-            {searchResults.map((result) => (
-              <li key={result.id}>
-                <button disabled={selectedPlayerIds.has(result.id)} onClick={() => handlePickFromSearch(result)}>
-                  {result.name} <span className="lineup-roster-team">{result.team_abbreviation}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : selectedTeam ? (
+        {selectedTeam ? (
           <>
-            <div className="picker-label">{selectedTeam.name}</div>
-            <ul className="lineup-roster two-column">
-              {roster.map((player) => (
-                <li key={player.id}>
-                  <button
-                    disabled={selectedPlayerIds.has(player.id)}
-                    onClick={() => handlePickFromRoster(player, selectedTeam)}
-                  >
-                    {player.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="picker-team-header">
+              <div className="picker-team-name">{selectedTeam.name}</div>
+
+              <div className="picker-tab-toggle">
+                <button
+                  className={pickerTab === "players" ? "active" : ""}
+                  onClick={() => setPickerTab("players")}
+                >
+                  Players
+                </button>
+                <button
+                  className={pickerTab === "lineups" ? "active" : ""}
+                  disabled={qualifyingLineups.length === 0}
+                  onClick={() => setPickerTab("lineups")}
+                >
+                  Real Lineups
+                </button>
+              </div>
+            </div>
+
+            {pickerTab === "players" ? (
+              <ul className="lineup-roster two-column">
+                {roster.map((player) => (
+                  <li key={player.id}>
+                    <button
+                      disabled={selectedPlayerIds.has(player.id)}
+                      onClick={() => handlePickFromRoster(player, selectedTeam)}
+                    >
+                      {player.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="real-lineup-list">
+                {qualifyingLineups.map((lineup) => (
+                  <li key={lineup.id}>
+                    <button onClick={() => placeLineup(lineup)}>
+                      <span className="real-lineup-players">{lineup.playerNames.join(" · ")}</span>
+                      <span className="real-lineup-meta">{lineup.totalFga} FGA</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </>
         ) : (
           <div className="picker-label">Pick a team to see its roster</div>
         )}
       </div>
-
-      {!isSearching && selectedTeam && qualifyingLineups.length > 0 && (
-        <div className="real-lineups-section">
-          <div className="real-lineups-title">Real lineups (100+ FGA)</div>
-          <ul className="real-lineup-list">
-            {qualifyingLineups.map((lineup) => (
-              <li key={lineup.id}>
-                <button onClick={() => placeLineup(lineup)}>
-                  <span className="real-lineup-players">{lineup.playerNames.join(" · ")}</span>
-                  <span className="real-lineup-meta">{lineup.totalFga} FGA</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

@@ -81,10 +81,16 @@ h2 {
   margin-bottom: 12px;
 }
 
+.court-chart-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+}
+
 .mode-toggle {
   display: flex;
   gap: 8px;
-  margin-bottom: 8px;
 }
 
 .mode-toggle button {
@@ -104,15 +110,27 @@ h2 {
 
 .mode-toggle button:disabled {
   opacity: 0.35;
-  cursor: default;
+  cursor: not-allowed;
 }
 
-.mode-note {
+.actual-tooltip-anchor {
+  position: relative;
+}
+
+.actual-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  z-index: 20;
+  width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
   font-size: 12px;
-  line-height: 16px;
-  min-height: 16px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  line-height: 1.4;
+  color: var(--text);
 }
 
 .lineup-selector {
@@ -126,27 +144,37 @@ h2 {
 
 .lineup-slots-column {
   flex-shrink: 0;
-  width: 200px;
+  width: 240px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+.lineup-slots-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .lineup-slots {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .lineup-clear-all {
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
+}
+
+.lineup-clear-all:hover:not(:disabled) {
+  color: var(--text);
 }
 
 .lineup-clear-all:disabled {
@@ -225,7 +253,9 @@ h2 {
 .lineup-slot {
   position: relative;
   width: 100%;
+  flex: 1;
   min-height: 76px;
+  max-height: 104px;
   border: 2px solid var(--border);
   border-radius: 8px;
   display: flex;
@@ -301,28 +331,11 @@ h2 {
   min-width: 0;
 }
 
-.lineup-search {
-  padding: 4px;
-  margin-bottom: 8px;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  font: inherit;
-}
-
-.lineup-roster-team {
-  color: var(--text-muted);
-  font-size: 11px;
-}
-
 .team-logo-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 3px;
+  padding: 3px;
   margin-bottom: 12px;
 }
 
@@ -360,6 +373,50 @@ h2 {
   margin-bottom: 4px;
 }
 
+.picker-team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.picker-team-name {
+  display: flex;
+  align-items: center;
+  min-height: 2.4em;
+  line-height: 1.2;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.picker-tab-toggle {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.picker-tab-toggle button {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.picker-tab-toggle button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.picker-tab-toggle button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .lineup-roster {
   list-style: none;
   padding: 0;
@@ -391,16 +448,6 @@ h2 {
   cursor: default;
 }
 
-.real-lineups-section {
-  margin-top: 12px;
-}
-
-.real-lineups-title {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
 .real-lineup-list {
   list-style: none;
   padding: 0;
@@ -408,8 +455,6 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .real-lineup-list button {
@@ -433,4 +478,87 @@ h2 {
 .real-lineup-meta {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+/* Non-mobile: */
+@media (min-width: 641px) {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    overflow: hidden;
+  }
+
+  .page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  h2 {
+    flex-shrink: 0;
+  }
+
+  .app-layout {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+    grid-template-columns: 1fr clamp(280px, 32vw, 420px);
+  }
+
+  .chart-row {
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .chart-area {
+    min-height: 0;
+  }
+
+  .lineup-picker {
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 12px;
+  }
+
+  .chart-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lineup-slots-column {
+    width: 100%;
+  }
+
+  .lineup-picker {
+    max-width: none;
+  }
+
+  .team-logo-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .lineup-roster.two-column {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .legends-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .legends-group {
+    gap: 24px;
+  }
 }

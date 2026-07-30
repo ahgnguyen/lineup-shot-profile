@@ -20,14 +20,3 @@ export function getPlayerShots(playerId: number): Promise<Shot[]> {
 export function getPlayer(playerId: number): Promise<Player> {
   return apiGet<Player>(`/players/${playerId}`);
 }
-
-export interface PlayerSearchResult {
-  id: number;
-  name: string;
-  team_id: number;
-  team_abbreviation: string;
-}
-
-export function searchPlayers(query: string): Promise<PlayerSearchResult[]> {
-  return apiGet<PlayerSearchResult[]>(`/players?q=${encodeURIComponent(query)}`);
-}
