@@ -1,6 +1,7 @@
 // frontend/src/api/composite.ts
 
 import { apiGet } from "./client";
+import type { ZoneId } from "../court/zones";
 
 export interface CompositeCell {
   x: number;
@@ -16,8 +17,23 @@ export interface CompositePlayerSummary {
   weight: number;
 }
 
+export interface ZonePlayerBreakdown {
+  playerId: number;
+  shots: number;
+  freqShare: number;
+  pointsPerShot: number | null;
+}
+
+export interface ZoneBreakdown {
+  zoneId: ZoneId;
+  frequency: number;
+  pointsPerShot: number | null;
+  players: ZonePlayerBreakdown[];
+}
+
 export interface CompositeResponse {
   cells: CompositeCell[];
+  zones: ZoneBreakdown[];
   totalShots: number;
   players: CompositePlayerSummary[];
 }

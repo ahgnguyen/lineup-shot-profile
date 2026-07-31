@@ -65,6 +65,118 @@ h2 {
   white-space: nowrap;
 }
 
+.zone-shape {
+  fill: transparent;
+  stroke: none;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.zone-shape:hover {
+  fill: rgba(255, 255, 255, 0.08);
+}
+
+.zone-shape.selected {
+  fill: rgba(77, 163, 255, 0.12);
+  stroke: var(--accent);
+  stroke-dasharray: none;
+}
+
+.zone-panel {
+  position: fixed;
+  z-index: 15;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text);
+  width: 280px;
+}
+
+.zone-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.zone-panel-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.zone-panel-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+}
+
+.zone-panel-close:hover {
+  color: var(--text);
+}
+
+.zone-panel-compare {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.zone-panel-compare-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.zone-panel-compare-label {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.zone-panel-players-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.zone-panel-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.zone-panel-players li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.zone-panel-player-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zone-panel-player-stats {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .sample-size-note {
   font-size: 12px;
   color: var(--text-muted);
@@ -573,6 +685,12 @@ h2 {
   .lineup-roster.two-column {
     grid-template-columns: 1fr;
     min-height: 0;
+  }
+
+  .zone-panel {
+    width: calc(100vw - 24px);
+    max-width: 280px;
+    left: 12px !important;
   }
 
   .legends-row {

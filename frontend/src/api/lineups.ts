@@ -2,6 +2,7 @@
 
 import type { CompositeCell } from './composite'
 import { apiGet } from './client'
+import type { ZoneId } from '../court/zones'
 
 export interface TeamLineup {
   id: string;
@@ -14,8 +15,16 @@ export interface TeamLineup {
   sufficientSample: boolean;
 }
 
+export interface ActualZoneSummary {
+  zoneId: ZoneId;
+  shots: number;
+  frequency: number;
+  pointsPerShot: number | null;
+}
+
 export interface LineupActualResponse {
   cells: CompositeCell[];
+  zones: ActualZoneSummary[];
   totalShots: number;
 }
 

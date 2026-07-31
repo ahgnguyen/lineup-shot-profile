@@ -6,6 +6,8 @@ import type { CompositeCell } from '../api/composite'
 import { COURT_WIDTH, COURT_LENGTH, toSvgX, toSvgY } from '../court'
 import { CourtOutline } from './CourtOutline'
 import { pointsPerShotColor } from '../pointsPerShotColor'
+import { ZoneOverlay } from './ZoneOverlay'
+import type { ZoneId } from '../court/zones'
 
 export const HEX_RADIUS = 20
 
@@ -13,6 +15,8 @@ interface CompositeHexbinChartProps {
   cells: CompositeCell[]
   children?: ReactNode
   size?: { width: number; height: number } | null
+  selectedZone?: ZoneId | null
+  onZoneClick?: (zoneId: ZoneId, clientX: number, clientY: number) => void
 }
 
 interface HoverState {
@@ -21,7 +25,7 @@ interface HoverState {
   clientY: number
 }
 
-export function CompositeHexbinChart({ cells, children, size }: CompositeHexbinChartProps) {
+export function CompositeHexbinChart({ cells, children, size, selectedZone, onZoneClick }: CompositeHexbinChartProps) {
   const hexbin = d3Hexbin().radius(HEX_RADIUS)
   const maxFrequency = Math.max(...cells.map((cell) => cell.frequency))
   const [hover, setHover] = useState<HoverState | null>(null)
@@ -52,6 +56,8 @@ export function CompositeHexbinChart({ cells, children, size }: CompositeHexbinC
             />
           )
         })}
+
+        {onZoneClick && <ZoneOverlay selectedZone={selectedZone ?? null} onZoneClick={onZoneClick} />}
       </svg>
 
       {hover && (

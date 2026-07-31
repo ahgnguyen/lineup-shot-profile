@@ -3,7 +3,7 @@
 import { Router } from "express";
 import { pool } from "../db/pool";
 import { SELECT_PLAYERS_SHOTS, SELECT_PLAYERS_FGA_SHARES } from "../db/queries";
-import { computeComposite, type PlayerShotData } from "../model/composite";
+import { computeComposite, computeZoneBreakdown, type PlayerShotData } from "../model/composite";
 import type { ShotPoint } from "../model/hexbin";
 
 const router = Router();
@@ -38,6 +38,7 @@ router.get("/", async (req, res) => {
   }));
 
   const { cells, weights } = computeComposite(players);
+  const zones = computeZoneBreakdown(players, weights);
 
   const playerSummaries = playerIds.map((playerId) => ({
     playerId,
@@ -48,7 +49,7 @@ router.get("/", async (req, res) => {
 
   const totalShots = playerSummaries.reduce((sum, p) => sum + p.shotCount, 0);
 
-  res.json({ cells, totalShots, players: playerSummaries });
+  res.json({ cells, zones, totalShots, players: playerSummaries });
 });
 
 export default router;

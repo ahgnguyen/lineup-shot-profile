@@ -5,7 +5,9 @@ import { CompositeHexbinChart } from './components/CompositeHexbinChart'
 import { PointsPerShotLegend } from './components/PointsPerShotLegend'
 import { FrequencyLegend } from './components/FrequencyLegend'
 import { EMPTY_LINEUP, LineupSlotsPanel, LineupPicker, useLineupController, type LineupSlots } from './components/LineupSelector'
+import { ZoneBreakdownPanel } from './components/ZoneBreakdownPanel'
 import { COURT_RATIO } from './court'
+import type { ZoneId } from './court/zones'
 
 type Mode = 'predicted' | 'actual'
 
@@ -61,6 +63,7 @@ function App() {
   const legendsRef = useRef<HTMLDivElement>(null)
   const courtSize = useCourtSize(chartAreaRef, legendsRef)
   const [showActualReason, setShowActualReason] = useState(false)
+  const [selectedZone, setSelectedZone] = useState<{ zoneId: ZoneId; clientX: number; clientY: number } | null>(null)
 
   const filledPlayerIds = slots.filter((slot) => slot !== null).map((slot) => slot.id)
   const hasAnyPlayers = filledPlayerIds.length > 0
@@ -76,6 +79,10 @@ function App() {
       .then(setComposite)
       .catch(() => setCompositeError(true))
   }, [hasAnyPlayers, filledPlayerIds.join(',')])
+
+  useEffect(() => {
+    setSelectedZone(null)
+  }, [filledPlayerIds.join(',')])
 
   useEffect(() => {
     const filled = slots.filter((s) => s !== null)
@@ -108,21 +115,33 @@ function App() {
   }, [matchedLineup, mode])
 
   useEffect(() => {
-    if (mode === 'predicted' || !matchedLineup?.sufficientSample) {
+    if (!matchedLineup?.sufficientSample) {
       setActualData(null)
       return
     }
-    getLineupActual(matchedLineup.id).then(setActualData)
-  }, [mode, matchedLineup?.id, matchedLineup?.sufficientSample])
+    let cancelled = false
+    getLineupActual(matchedLineup.id).then((data) => {
+      if (!cancelled) setActualData(data)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [matchedLineup?.id, matchedLineup?.sufficientSample])
 
   const weightsByPlayer = new Map(composite?.players.map((p) => [p.playerId, p.weight]) ?? [])
+  const playersById = new Map(
+    slots.filter((s): s is NonNullable<typeof s> => s !== null).map((s) => [s.id, { name: s.name, teamAbbreviation: s.teamAbbreviation }]),
+  )
+  const selectedPredictedZone = selectedZone ? composite?.zones.find((z) => z.zoneId === selectedZone.zoneId) : undefined
+  const selectedActualZone = selectedZone ? actualData?.zones.find((z) => z.zoneId === selectedZone.zoneId) : undefined
+  const handleZoneClick = (zoneId: ZoneId, clientX: number, clientY: number) =>
+    setSelectedZone((current) => (current?.zoneId === zoneId ? null : { zoneId, clientX, clientY }))
   const canShowActual = matchedLineup !== null && matchedLineup.sufficientSample
   const allSlotsFilled = slots.every((s) => s !== null)
 
   // Keep showing Predicted until Actual can be showed
   const displayCells = mode === 'actual' && actualData ? actualData.cells : composite?.cells ?? []
 
-  const filledCount = filledPlayerIds.length
   const actualDisabledReason = !allSlotsFilled
     ? `Pick 5 players to check for real lineup data`
     : matchedLineup === null
@@ -137,7 +156,12 @@ function App() {
       <div className="app-layout">
         <div className="chart-row">
           <div className="chart-area" ref={chartAreaRef}>
-            <CompositeHexbinChart cells={displayCells} size={courtSize}>
+            <CompositeHexbinChart
+              cells={displayCells}
+              size={courtSize}
+              selectedZone={selectedZone?.zoneId ?? null}
+              onZoneClick={composite ? handleZoneClick : undefined}
+            >
               <div className="mode-toggle">
                 <button className={mode === 'predicted' ? 'active' : ''} onClick={() => setMode('predicted')}>
                   Predicted
@@ -160,6 +184,17 @@ function App() {
                 </span>
               </div>
             </CompositeHexbinChart>
+
+            {selectedPredictedZone && selectedZone && (
+              <ZoneBreakdownPanel
+                predictedZone={selectedPredictedZone}
+                actualZone={selectedActualZone}
+                clientX={selectedZone.clientX}
+                clientY={selectedZone.clientY}
+                playersById={playersById}
+                onClose={() => setSelectedZone(null)}
+              />
+            )}
 
             <div className="legends-row" ref={legendsRef}>
               <div className="legends-group">
