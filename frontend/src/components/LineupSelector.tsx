@@ -153,6 +153,7 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [roster, setRoster] = useState<TeamPlayer[]>([]);
   const [teamLineups, setTeamLineups] = useState<TeamLineup[]>([]);
+  const [rosterError, setRosterError] = useState(false);
   const [pickerTab, setPickerTab] = useState<"players" | "lineups">("players");
 
   useEffect(() => {
@@ -165,10 +166,26 @@ export function LineupPicker({ controller }: LineupPickerProps) {
     if (selectedTeamId === null) {
       setRoster([]);
       setTeamLineups([]);
+      setRosterError(false);
       return;
     }
-    getTeamPlayers(selectedTeamId).then(setRoster);
-    getTeamLineups(selectedTeamId).then(setTeamLineups);
+    let cancelled = false;
+    setRosterError(false);
+    Promise.all([getTeamPlayers(selectedTeamId), getTeamLineups(selectedTeamId)])
+      .then(([players, lineups]) => {
+        if (cancelled) return;
+        setRoster(players);
+        setTeamLineups(lineups);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRoster([]);
+        setTeamLineups([]);
+        setRosterError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedTeamId]);
 
   function handlePickFromRoster(player: TeamPlayer, team: Team) {
@@ -178,9 +195,13 @@ export function LineupPicker({ controller }: LineupPickerProps) {
   const selectedTeam = teams.find((team) => team.id === selectedTeamId) ?? null;
   const qualifyingLineups = teamLineups.filter((l) => l.sufficientSample);
 
-  // The tab you're on carries over across teams (not reset to Players on
-  // every switch) - this only overrides that if the newly selected team
-  // makes the current tab invalid (no qualifying lineups to show).
+  function isLineupSelected(lineup: TeamLineup): boolean {
+    return (
+      lineup.playerIds.length === selectedPlayerIds.size &&
+      lineup.playerIds.every((id) => selectedPlayerIds.has(id))
+    );
+  }
+
   useEffect(() => {
     if (pickerTab === "lineups" && qualifyingLineups.length === 0) {
       setPickerTab("players");
@@ -230,7 +251,11 @@ export function LineupPicker({ controller }: LineupPickerProps) {
               </div>
             </div>
 
-            {pickerTab === "players" ? (
+            {rosterError && (
+              <div className="fetch-error">Couldn't load this team's roster. Try again in a moment.</div>
+            )}
+
+            {rosterError ? null : pickerTab === "players" ? (
               <ul className="lineup-roster two-column">
                 {roster.map((player) => (
                   <li key={player.id}>
@@ -247,7 +272,7 @@ export function LineupPicker({ controller }: LineupPickerProps) {
               <ul className="real-lineup-list">
                 {qualifyingLineups.map((lineup) => (
                   <li key={lineup.id}>
-                    <button onClick={() => placeLineup(lineup)}>
+                    <button disabled={isLineupSelected(lineup)} onClick={() => placeLineup(lineup)}>
                       <span className="real-lineup-players">{lineup.playerNames.join(" · ")}</span>
                       <span className="real-lineup-meta">{lineup.totalFga} FGA</span>
                     </button>

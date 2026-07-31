@@ -57,7 +57,9 @@ function App() {
   const [compositeError, setCompositeError] = useState(false)
   const [mode, setMode] = useState<Mode>('predicted')
   const [matchedLineup, setMatchedLineup] = useState<TeamLineup | null>(null)
+  const [matchError, setMatchError] = useState(false)
   const [actualData, setActualData] = useState<LineupActualResponse | null>(null)
+  const [actualError, setActualError] = useState(false)
   const lineupController = useLineupController(slots, setSlots)
   const chartAreaRef = useRef<HTMLDivElement>(null)
   const legendsRef = useRef<HTMLDivElement>(null)
@@ -88,19 +90,27 @@ function App() {
     const filled = slots.filter((s) => s !== null)
     if (filled.length !== 5) {
       setMatchedLineup(null)
+      setMatchError(false)
       return
     }
     const selectedIdSet = new Set(filled.map((s) => s.id))
     const candidateTeamIds = [...new Set(filled.map((s) => s.teamId))]
 
     let cancelled = false
-    Promise.all(candidateTeamIds.map((teamId) => getTeamLineups(teamId))).then((results) => {
-      if (cancelled) return
-      const match = results
-        .flat()
-        .find((l) => l.playerIds.length === selectedIdSet.size && l.playerIds.every((id) => selectedIdSet.has(id)));
-      setMatchedLineup(match ?? null)
-    })
+    setMatchError(false)
+    Promise.all(candidateTeamIds.map((teamId) => getTeamLineups(teamId)))
+      .then((results) => {
+        if (cancelled) return
+        const match = results
+          .flat()
+          .find((l) => l.playerIds.length === selectedIdSet.size && l.playerIds.every((id) => selectedIdSet.has(id)));
+        setMatchedLineup(match ?? null)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setMatchedLineup(null)
+        setMatchError(true)
+      })
     return () => {
       cancelled = true
     }
@@ -117,12 +127,20 @@ function App() {
   useEffect(() => {
     if (!matchedLineup?.sufficientSample) {
       setActualData(null)
+      setActualError(false)
       return
     }
     let cancelled = false
-    getLineupActual(matchedLineup.id).then((data) => {
-      if (!cancelled) setActualData(data)
-    })
+    setActualError(false)
+    getLineupActual(matchedLineup.id)
+      .then((data) => {
+        if (!cancelled) setActualData(data)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setActualData(null)
+        setActualError(true)
+      })
     return () => {
       cancelled = true
     }
@@ -144,11 +162,13 @@ function App() {
 
   const actualDisabledReason = !allSlotsFilled
     ? `Pick 5 players to check for real lineup data`
-    : matchedLineup === null
-      ? "This lineup doesn't have any shot attempts together"
-      : !matchedLineup.sufficientSample
-        ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed)`
-        : undefined
+    : matchError
+      ? "Couldn't check for real lineup data. Try again in a moment."
+      : matchedLineup === null
+        ? "This lineup doesn't have any shot attempts together"
+        : !matchedLineup.sufficientSample
+          ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed)`
+          : undefined
 
   return (
     <div className="page">
@@ -203,6 +223,8 @@ function App() {
               </div>
               {mode === 'actual' && actualData ? (
                 <div className="sample-size-note">Actual: {actualData.totalShots.toLocaleString()} shots</div>
+              ) : mode === 'actual' && actualError ? (
+                <div className="sample-size-note">Couldn't load actual shot data</div>
               ) : (
                 composite && (
                   <div className="sample-size-note">
@@ -212,6 +234,10 @@ function App() {
                 )
               )}
             </div>
+
+            {mode === 'actual' && actualError && (
+              <div className="fetch-error">Couldn't load actual shot data for this lineup. Try again in a moment.</div>
+            )}
 
             {compositeError && (
               <div className="fetch-error">Couldn't load this lineup's shot data. Try again in a moment.</div>

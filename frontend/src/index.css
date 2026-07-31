@@ -303,15 +303,21 @@ h2 {
   justify-content: space-between;
   align-items: flex-start;
   margin-top: 12px;
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 
 .legends-group {
   display: flex;
   gap: 32px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+  min-width: 0;
 }
 
 .pps-legend {
   width: 200px;
+  max-width: 100%;
 }
 
 .freq-legend-title {
@@ -596,6 +602,11 @@ h2 {
   gap: 2px;
 }
 
+.real-lineup-list button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .real-lineup-players {
   font-size: 12px;
 }
@@ -631,7 +642,7 @@ h2 {
     flex: 1;
     min-height: 0;
     align-items: stretch;
-    grid-template-columns: 1fr clamp(280px, 32vw, 420px);
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 32vw, 420px);
   }
 
   .chart-row {
@@ -641,6 +652,10 @@ h2 {
 
   .chart-area {
     min-height: 0;
+  }
+
+  .lineup-slots-column {
+    width: clamp(160px, 17vw, 240px);
   }
 
   .lineup-picker {
@@ -663,6 +678,20 @@ h2 {
 @media (max-width: 640px) {
   .page {
     padding: 16px 12px;
+  }
+
+  /* The base rule's grid-template-columns: 1fr 460px / "main sidebar" is
+     never otherwise overridden for mobile - chart-row's own
+     flex-direction: column below only stacks the court+lineup inside
+     "main"; without this, the outer grid still tries to place a fixed
+     460px sidebar next to it, which alone is wider than most phones and
+     forces the whole page to scroll horizontally. */
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "sidebar";
+    row-gap: 24px;
   }
 
   .chart-row {
