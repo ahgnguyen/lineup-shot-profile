@@ -122,11 +122,14 @@ function App() {
   // Keep showing Predicted until Actual can be showed
   const displayCells = mode === 'actual' && actualData ? actualData.cells : composite?.cells ?? []
 
-  const actualDisabledReason = allSlotsFilled && matchedLineup === null
-    ? "This isn't a real lineup that has shared the floor together."
-    : matchedLineup && !matchedLineup.sufficientSample
-      ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed).`
-      : undefined
+  const filledCount = filledPlayerIds.length
+  const actualDisabledReason = !allSlotsFilled
+    ? `Pick 5 players to check for real lineup data`
+    : matchedLineup === null
+      ? "This lineup doesn't have any shot attempts together"
+      : !matchedLineup.sufficientSample
+        ? `This lineup has only ${matchedLineup.totalFga} FGA together (100+ needed)`
+        : undefined
 
   return (
     <div className="page">
