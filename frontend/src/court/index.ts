@@ -1,4 +1,4 @@
-// frontend/src/court.ts
+// frontend/src/court/index.ts
 
 export const COURT_WIDTH = 500
 export const COURT_LENGTH = 470

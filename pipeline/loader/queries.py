@@ -19,8 +19,6 @@ INSERT INTO player_shot_history (player_id, team_id, loc_x, loc_y, made, shot_va
 VALUES (%s, %s, %s, %s, %s, %s)
 """
 
-SELECT_PLAYER_OWN_FGA = "SELECT COUNT(*) FROM player_shot_history WHERE player_id = %s"
-
 SELECT_PLAYER_OWN_FGA_FOR_TEAM = """
 SELECT COUNT(*) FROM player_shot_history WHERE player_id = %s AND team_id = %s
 """

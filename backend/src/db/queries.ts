@@ -1,17 +1,5 @@
 // backend/src/db/queries.ts
 
-export const SELECT_PLAYER_SHOTS = `
-  SELECT loc_x, loc_y, made
-  FROM player_shot_history
-  WHERE player_id = $1
-`;
-
-export const SELECT_PLAYER = `
-  SELECT id, name
-  FROM players
-  WHERE id = $1
-`;
-
 export const SELECT_PLAYERS_SHOTS = `
   SELECT player_id, loc_x, loc_y, made, shot_value
   FROM player_shot_history
@@ -37,15 +25,6 @@ export const SELECT_TEAM_PLAYERS = `
   ORDER BY name
 `;
 
-export const SEARCH_PLAYERS = `
-  SELECT p.id, p.name, p.team_id, t.abbreviation AS team_abbreviation
-  FROM players p
-  JOIN teams t ON t.id = p.team_id
-  WHERE unaccent(p.name) ILIKE '%' || unaccent($1) || '%'
-  ORDER BY p.name
-  LIMIT 25
-`;
-
 export const SELECT_TEAM_LINEUPS = `
   SELECT
     l.id,
@@ -67,12 +46,6 @@ export const SELECT_TEAM_LINEUPS = `
   ) roster
   WHERE l.team_id = $1
   ORDER BY l.total_fga DESC
-`;
-
-export const SELECT_LINEUP = `
-  SELECT id, team_id, player_ids, total_minutes, total_fga
-  FROM lineups
-  WHERE id = $1
 `;
 
 export const SELECT_LINEUP_ACTUAL_SHOTS = `
